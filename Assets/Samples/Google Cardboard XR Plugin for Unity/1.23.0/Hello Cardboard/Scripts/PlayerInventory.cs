@@ -6,7 +6,7 @@ public class PlayerInventory : MonoBehaviour {
 	[Header("Hand Transform")]
 	[SerializeField] private Transform handSlot;
 
-	private GameObject heldItem;
+	private Interactable heldItem;
 
 	private void Awake() {
 		// Singleton for easy access
@@ -18,7 +18,7 @@ public class PlayerInventory : MonoBehaviour {
 
 	public bool HasItem => heldItem != null;
 
-	public void PickUp(GameObject item) {
+	public void PickUp(Interactable item) {
 		heldItem = item;
 
         item.transform.SetParent(handSlot);
@@ -33,5 +33,5 @@ public class PlayerInventory : MonoBehaviour {
         }
 	}
 
-	public GameObject GetHeldItem() { return heldItem; }
+	public Interactable GetHeldItem() { return heldItem; }
 }

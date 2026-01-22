@@ -5,7 +5,7 @@ public class MugShelfInteractable : Interactable {
 	[SerializeField] private Transform shelf;
 	
 	[Header("Mugs on this shelf")]
-	[SerializeField] private Transform[] mugs;
+	[SerializeField] private Interactable[] mugs;
 
 	private Vector3 mugPosition = new Vector3(0.2f, 0.11f, -0.25f);
 
@@ -18,15 +18,15 @@ public class MugShelfInteractable : Interactable {
 		}
 		else {
 			for (int i = 0; i < mugs.Length; i++) {
-                PlayerInventory.Instance.PickUp(mugs[i].gameObject);
+                PlayerInventory.Instance.PickUp(mugs[i]);
 				break;
             }
 		}
 	}
 
-	private void ReturnMugToShelf(GameObject mug) {
+	private void ReturnMugToShelf(Interactable mug) {
 		for (int i = 0; i < mugs.Length; i++) {
-			if (mugs[i].gameObject == mug) {
+			if (mugs[i].gameObject == mug.gameObject) {
                 mug.transform.SetParent(shelf);
                 Vector3 pos = mugPosition;
                 pos.x -= i * 0.25f;
