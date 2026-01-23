@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 public class MugShelfInteractable : Interactable {
@@ -5,14 +6,20 @@ public class MugShelfInteractable : Interactable {
 	[SerializeField] private Transform shelf;
 	
 	[Header("Mugs on this shelf")]
-	[SerializeField] private Interactable[] mugs;
+	[SerializeField] private MugInteractable[] mugs;
 
 	private Vector3 mugPosition = new Vector3(0.2f, 0.11f, -0.25f);
 
-	protected override void OnInteract() {
+    private void Start() {
+		foreach (var mug in mugs)
+			mug.Initialize(this);
+    }
+
+    protected override void OnInteract() {
 		var heldItem = PlayerInventory.Instance.GetHeldItem();
 
 		if (PlayerInventory.Instance.HasItem) {
+			if (heldItem.GetComponent<MugInteractable>().HomeShelf != this) return;
 			PlayerInventory.Instance.DropCurrentItem();
 			ReturnMugToShelf(heldItem);
 		}

@@ -30,7 +30,9 @@ public class LookToWalk : MonoBehaviour
         float cameraPitchAngle = GetCameraPitchAngle();
 
         isWalking = mainCamera.transform.eulerAngles.x >= minimumAngleTreshold
-            && mainCamera.transform.eulerAngles.x <= maximumAngleTreshold;
+            && mainCamera.transform.eulerAngles.x <= maximumAngleTreshold 
+            && PlayerStateController.Instance.CurrentActionState == ActionState.FreeMove
+            && PlayerStateController.Instance.CurrentLocationState == LocationState.OutsideBar;
 
         HandleAudio();
     }

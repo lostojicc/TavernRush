@@ -29,6 +29,7 @@ public abstract class Interactable : MonoBehaviour
                 OnInteract(); 
                 meshRenderer.material.color = inactiveColor;
                 isGazing = false;
+
             }
         }
     }
@@ -44,10 +45,12 @@ public abstract class Interactable : MonoBehaviour
 
     private void StartGaze() {
         isGazing = true;
+        PlayerStateController.Instance.SetActionState(ActionState.Interacting);
     }
 
     private void StopGaze() {
         isGazing = false;
+        PlayerStateController.Instance.SetActionState(ActionState.FreeMove);
         elapsedGazeTime = 0f;
         meshRenderer.material.color = inactiveColor;
     }
