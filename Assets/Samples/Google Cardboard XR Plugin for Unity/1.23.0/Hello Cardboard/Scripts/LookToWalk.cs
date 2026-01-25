@@ -1,84 +1,118 @@
 using System;
 using UnityEngine;
+using UnityEngine.UIElements;
+
+public enum MovementState {
+	None,
+	Walking,
+	GoingUp,
+	GoingDown
+}
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(AudioSource))]
 public class LookToWalk : MonoBehaviour
 {
-    [SerializeField] private float walkingSpeed = 3.0f;
-    [SerializeField] private AudioClip walkingAudioEffect;
+	[Header("Walking Settings")]
+	[SerializeField] private float walkingSpeed = 3.0f;
+	[SerializeField] private AudioClip walkingAudioEffect;
+	[SerializeField] private float minimumWalkingAngleTreshold = 35.0f;
+	[SerializeField] private float maximumWalkingAngleTreshold = 80.0f;
 
-    [SerializeField] private float minimumAngleTreshold = 35.0f;
-    [SerializeField] private float maximumAngleTreshold = 90.0f;
+	[Header("Climbing Settings")]
+	[SerializeField] private float climbingSpeed = 2.0f;
+	[SerializeField] private float minimumClimbingAngleTreshold = 60f;
 
-    private Camera mainCamera;
-    private Rigidbody rb;
-    private bool isWalking = false;
-    private AudioSource walkingAudioSource;
+	private CameraController cameraController;
+	private Rigidbody rb;
+	private MovementState movementState = MovementState.None;
+	private AudioSource walkingAudioSource;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        mainCamera = Camera.main;
-        rb = GetComponent<Rigidbody>();
-        walkingAudioSource = GetComponent<AudioSource>();
-    }
+	// Start is called before the first frame update
+	void Start() {
+		cameraController = Camera.main.GetComponent<CameraController>();
+		rb = GetComponent<Rigidbody>();
+		walkingAudioSource = GetComponent<AudioSource>();
+	}
 
-    // Update is called once per frame
-    void Update()
-    {
-        float cameraPitchAngle = GetCameraPitchAngle();
+	// Update is called once per frame
+	void Update() {
+		float cameraPitchAngle = cameraController.GetPitch();
+		Debug.Log(PlayerStateController.Instance.CurrentActionState);
+		HandleAudio();
 
-        isWalking = mainCamera.transform.eulerAngles.x >= minimumAngleTreshold
-            && mainCamera.transform.eulerAngles.x <= maximumAngleTreshold 
-            && PlayerStateController.Instance.CurrentActionState == ActionState.FreeMove
-            && PlayerStateController.Instance.CurrentLocationState == LocationState.OutsideBar;
+		if (PlayerStateController.Instance.CurrentActionState == ActionState.Interacting) {
+			movementState = MovementState.None;
+			return;
+		}
 
-        HandleAudio();
-    }
+		if (PlayerStateController.Instance.CurrentLocationState == LocationState.OutsideBar
+			&& cameraPitchAngle >= minimumWalkingAngleTreshold
+			&& cameraPitchAngle <= maximumWalkingAngleTreshold) {
+			movementState = MovementState.Walking;
+			return;
+		}
+		else if (PlayerStateController.Instance.CurrentLocationState == LocationState.OnLadder) {
+			if (cameraPitchAngle <= -minimumClimbingAngleTreshold) {
+				movementState = MovementState.GoingUp;
+				return;
+			}
 
-    private float GetCameraPitchAngle()
-    {
-        // Local Euler angles = “head tilt relative to the body” - Using eulerAngles in world space could break the angle detection if the parent rotates
-        float cameraPitchAngle = mainCamera.transform.localEulerAngles.x;
-        //if (cameraPitchAngle > 180f) cameraPitchAngle -= 360f; // convert to -180..180
-        return cameraPitchAngle;
-    }
+			if (cameraPitchAngle >= minimumClimbingAngleTreshold) {
+				movementState = MovementState.GoingDown;
+				return;
+			}
 
-    private void HandleAudio()
-    {
-        if (isWalking)
-        {
-            if (!walkingAudioSource.isPlaying)
-                walkingAudioSource.Play();
-        }
-        else
-        {
-            if (walkingAudioSource.isPlaying)
-                walkingAudioSource.Stop();
-        }
-    }
+			movementState = MovementState.None;
+			return;
+		}
 
-    private void FixedUpdate()
-    {
-        if (isWalking)
-        {
-            MovePlayer();
-        }
-    }
+		movementState = MovementState.None;
+	}
 
-    private void MovePlayer()
-    {
-        Vector3 forward = mainCamera.transform.forward;
-        // Keep player (and its head) at the same height
-        forward.y = 0f;
-        // Normalization ensures predictable consistent speed independent of direction (avoids length's dependency on rotation and floating-point error)
-        forward.Normalize();
+	private void HandleAudio() {
+		if (movementState == MovementState.Walking) {
+			if (!walkingAudioSource.isPlaying)
+				walkingAudioSource.Play();
+		}
+		else {
+			if (walkingAudioSource.isPlaying)
+				walkingAudioSource.Stop();
+		}
+	}
 
-        Vector3 newPosition = rb.position + Time.fixedDeltaTime * walkingSpeed * forward;
-        rb.MovePosition(newPosition);
+	private void FixedUpdate() {
+		rb.useGravity = PlayerStateController.Instance.CurrentLocationState != LocationState.OnLadder;
+		if (movementState != MovementState.None)
+			MovePlayer();
+	}
 
-        //Vector3 movementVector = new Vector3(mainCamera.transform.forward.x, 0, mainCamera.transform.forward.z);
-        //transform.Translate(Time.deltaTime * walkingSpeed * movementVector.normalized);
-    }
+	private void MovePlayer() {
+		Vector3 direction;
+		switch (movementState) {
+			case MovementState.GoingUp:
+				direction = Vector3.up;
+				rb.MovePosition(rb.position + climbingSpeed * Time.fixedDeltaTime * direction);
+				break;
+
+			case MovementState.GoingDown:
+				direction = Vector3.down;
+				rb.MovePosition(rb.position + climbingSpeed * Time.fixedDeltaTime * direction);
+				break;
+
+			default:
+				Vector3 forward = cameraController.transform.forward;
+				// Keep player (and its head) at the same height
+				forward.y = 0f;
+				forward.Normalize();
+				rb.MovePosition(rb.position + Time.fixedDeltaTime * walkingSpeed * forward);
+				break;
+		}
+
+		// Normalization ensures predictable consistent speed independent of direction (avoids length's dependency on rotation and floating-point error)
+
+
+		//Vector3 movementVector = new Vector3(mainCamera.transform.forward.x, 0, mainCamera.transform.forward.z);
+		//transform.Translate(Time.deltaTime * walkingSpeed * movementVector.normalized);
+	}
 }
