@@ -11,7 +11,6 @@ public class LadderInteractable : Interactable {
 	private BoxCollider collider;
 
 	private Vector3 bottomPoint, topPoint, centerPoint;
-	private float ladderLength;
 
 	protected override void Awake() {
 		base.Awake();
@@ -22,7 +21,6 @@ public class LadderInteractable : Interactable {
 
 		bottomPoint = centerPoint + transform.right * height;
 		topPoint = centerPoint - transform.right * height;
-        ladderLength = Vector3.Distance(bottomPoint, topPoint);
 	}
 
     private void FixedUpdate() {

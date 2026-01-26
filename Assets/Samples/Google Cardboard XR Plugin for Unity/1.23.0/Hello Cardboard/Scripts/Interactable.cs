@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 [RequireComponent (typeof(MeshRenderer))]
@@ -5,7 +6,11 @@ public abstract class Interactable : MonoBehaviour
 {
 	[Header("Gaze Settings")]
 	[SerializeField] private float maxGazeTime = 2f;
-	private float elapsedGazeTime = 0f;
+
+    [Header("Gaze label")]
+    [SerializeField] private Transform label;
+
+    private float elapsedGazeTime = 0f;
 	private bool isGazing = false;
 
 	protected MeshRenderer meshRenderer;
@@ -39,14 +44,18 @@ public abstract class Interactable : MonoBehaviour
 		isGazing = true;
         ReticleController.Instance.StartFill(maxGazeTime);
         PlayerStateController.Instance.SetActionState(ActionState.Interacting);
-	}
+        label.transform.position = transform.position + Vector3.up * 0.5f - label.forward * 0.5f;
+		label.gameObject.GetComponentInChildren<TMP_Text>().text = transform.root.name;
+		label.gameObject.SetActive(true);
+    }
 
 	private void StopGaze() {
 		isGazing = false;
         ReticleController.Instance.StopFill();
         PlayerStateController.Instance.SetActionState(ActionState.FreeMove);
 		elapsedGazeTime = 0f;
-	}
+        label.gameObject.SetActive(false);
+    }
 	#endregion
 
 	protected abstract void OnInteract();
