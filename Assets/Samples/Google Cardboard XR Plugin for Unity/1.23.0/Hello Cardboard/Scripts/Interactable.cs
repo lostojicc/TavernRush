@@ -3,9 +3,6 @@ using UnityEngine;
 [RequireComponent (typeof(MeshRenderer))]
 public abstract class Interactable : MonoBehaviour
 {
-	[Header("Gaze Colors")]
-	[SerializeField] private Material reticle;
-	
 	[Header("Gaze Settings")]
 	[SerializeField] private float maxGazeTime = 2f;
 	private float elapsedGazeTime = 0f;

@@ -22,23 +22,23 @@ public class LookToWalk : MonoBehaviour
 	[Header("Climbing Settings")]
 	[SerializeField] private float climbingSpeed = 2.0f;
 	[SerializeField] private float minimumClimbingAngleTreshold = 60f;
+	[SerializeField] private AudioClip climbingAudioEffect;
 
 	private CameraController cameraController;
 	private Rigidbody rb;
 	private MovementState movementState = MovementState.None;
-	private AudioSource walkingAudioSource;
+	private AudioSource movementAudioSource;
 
 	// Start is called before the first frame update
 	void Start() {
 		cameraController = Camera.main.GetComponent<CameraController>();
 		rb = GetComponent<Rigidbody>();
-		walkingAudioSource = GetComponent<AudioSource>();
+		movementAudioSource = GetComponent<AudioSource>();
 	}
 
 	// Update is called once per frame
 	void Update() {
 		float cameraPitchAngle = cameraController.GetPitch();
-		Debug.Log(PlayerStateController.Instance.CurrentActionState);
 		HandleAudio();
 
 		if (PlayerStateController.Instance.CurrentActionState == ActionState.Interacting) {
@@ -71,14 +71,15 @@ public class LookToWalk : MonoBehaviour
 	}
 
 	private void HandleAudio() {
-		if (movementState == MovementState.Walking) {
-			if (!walkingAudioSource.isPlaying)
-				walkingAudioSource.Play();
+		if (movementState == MovementState.None) {
+			if (movementAudioSource.isPlaying) 
+				movementAudioSource.Stop();
+			return;
 		}
-		else {
-			if (walkingAudioSource.isPlaying)
-				walkingAudioSource.Stop();
-		}
+
+		movementAudioSource.clip = movementState == MovementState.Walking ? walkingAudioEffect : climbingAudioEffect;
+		if (!movementAudioSource.isPlaying) 
+			movementAudioSource.Play();
 	}
 
 	private void FixedUpdate() {
