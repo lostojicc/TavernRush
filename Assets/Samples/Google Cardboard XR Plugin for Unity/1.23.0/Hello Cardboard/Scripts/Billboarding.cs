@@ -13,12 +13,12 @@ public class Billboarding : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        Quaternion rotation = mainCamera.transform.rotation;
+        transform.LookAt(transform.position + rotation * Vector3.forward, rotation * Vector3.up);
     }
 
     void LateUpdate()
     {
-        Quaternion rotation = mainCamera.transform.rotation;
-        transform.LookAt(transform.position + rotation * Vector3.forward, rotation * Vector3.up);
+        
     }
 }

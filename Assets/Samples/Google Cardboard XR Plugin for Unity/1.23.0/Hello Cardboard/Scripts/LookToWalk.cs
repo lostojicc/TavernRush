@@ -94,12 +94,14 @@ public class LookToWalk : MonoBehaviour
 			case MovementState.GoingUp:
 				direction = Vector3.up;
 				rb.MovePosition(rb.position + climbingSpeed * Time.fixedDeltaTime * direction);
+				TutorialManager.Instance.NotifyStepComplete("Ladder");
 				break;
 
 			case MovementState.GoingDown:
 				direction = Vector3.down;
 				rb.MovePosition(rb.position + climbingSpeed * Time.fixedDeltaTime * direction);
-				break;
+                TutorialManager.Instance.NotifyStepComplete("Ladder");
+                break;
 
 			default:
 				Vector3 forward = cameraController.transform.forward;
@@ -107,7 +109,8 @@ public class LookToWalk : MonoBehaviour
 				forward.y = 0f;
 				forward.Normalize();
 				rb.MovePosition(rb.position + Time.fixedDeltaTime * walkingSpeed * forward);
-				break;
+                TutorialManager.Instance.NotifyStepComplete("Walk");
+                break;
 		}
 
 		// Normalization ensures predictable consistent speed independent of direction (avoids length's dependency on rotation and floating-point error)

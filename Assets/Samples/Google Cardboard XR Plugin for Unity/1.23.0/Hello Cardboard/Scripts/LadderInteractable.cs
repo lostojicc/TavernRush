@@ -5,9 +5,6 @@ public class LadderInteractable : Interactable {
 	[Header("Ladder settings")]
 	[SerializeField] private float attachOffset = 0.5f;
 
-	[Header("Player")]
-	[SerializeField] private Transform player;
-
 	private BoxCollider collider;
 
 	private Vector3 bottomPoint, topPoint, centerPoint;
@@ -17,14 +14,13 @@ public class LadderInteractable : Interactable {
 		collider = GetComponent<BoxCollider>();
 
 		centerPoint = collider.bounds.center;
-		float height = collider.size.x * 0.4f * transform.lossyScale.x;
+		float height = collider.size.x * 0.5f * transform.lossyScale.x;
 
 		bottomPoint = centerPoint + transform.right * height;
 		topPoint = centerPoint - transform.right * height;
 	}
 
     private void FixedUpdate() {
-		Debug.Log(player.position.y);
 		if (PlayerStateController.Instance.CurrentLocationState != LocationState.OnLadder) return;
 		
 		HandleDetach();
@@ -44,7 +40,7 @@ public class LadderInteractable : Interactable {
 	}
 
     private void HandleDetach() {
-		if (player.position.y >= bottomPoint.y && player.position.y <= topPoint.y) return;
+		if (player.gameObject.GetComponent<Collider>().bounds.min.y >= bottomPoint.y && player.position.y <= topPoint.y) return;
 		
 		if (player.position.y >= topPoint.y) 
 			player.position += 3 * attachOffset * transform.up;
